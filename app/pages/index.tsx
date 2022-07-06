@@ -109,7 +109,7 @@ const Home: NextPage = () => {
 
       <div>
         <p>
-          <em>Open console to see log and track behaviour</em>
+          <em>Open console to see log and track behaviour. You will need to reload on first load to activate the service worker.</em>
         </p>
         {!directoryHandle && (
           <>
