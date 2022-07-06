@@ -4,7 +4,8 @@ declare const self: ServiceWorkerGlobalScope;
 
 import { get, set } from 'idb-keyval';
 
-//const resources = self.__WB_MANIFEST; // this is just to satisfy workbox
+// @ts-expect-error
+const resources = self.__WB_MANIFEST; // this is just to satisfy workbox
 
 const directoryPermissions: FileSystemHandlePermissionDescriptor = {
   mode: 'readwrite'
