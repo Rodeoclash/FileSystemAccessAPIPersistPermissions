@@ -43,7 +43,7 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'WRITE_INTERVAL_FILE') {
-    handleWriteInterval();
+    //handleWriteInterval();
   }
 });
 

@@ -5,12 +5,14 @@ import Head from "next/head";
 import type { NextPage } from "next";
 
 const directoryPermissions: FileSystemHandlePermissionDescriptor = {
-  mode: 'readwrite'
+  //mode: 'readwrite', // use this when testing writing from service worker
+  mode: 'read'
 }
 
 const Home: NextPage = () => {
   const [directoryHandle, setDirectoryHandle] = React.useState<FileSystemDirectoryHandle | null>(null);
-  const [directoryHandleExpired, setDirectoryHandleExpired] = React.useState<boolean>(false);
+  const [directoryHandleExpired, setDirectoryHandleExpired] = React.useState<boolean | null>(null);
+  const [videos, setVideos] = React.useState<Array<File>>([])
 
   /**
    * On picking a directory handle, store in storage and react state
@@ -61,6 +63,28 @@ const Home: NextPage = () => {
   }, [])
 
   /**
+   * Used to populate the videos
+   */
+  React.useEffect(() => {
+    (async () => {
+      if (!directoryHandle || directoryHandleExpired === null || directoryHandleExpired === true) {
+        return
+      }
+
+      let videos = [];
+
+      for await (const [fileName, handle] of directoryHandle.entries()) {
+        if (handle instanceof FileSystemFileHandle ) {
+          const file = await handle.getFile();
+          videos.push(file)
+        }
+      }
+
+      setVideos(videos)
+    })();
+  }, [directoryHandle, directoryHandleExpired])
+
+  /**
    * Register the service worker on boot
    */
    React.useEffect(() => {
@@ -99,6 +123,19 @@ const Home: NextPage = () => {
     }
   }, [directoryHandle])
 
+  const renderedVideos = videos.map((file) => {
+    const handleLoad = (el: HTMLVideoElement) => {
+      const url = URL.createObjectURL(file)
+      el.src = url;
+    }
+
+    return (
+      <div key={file.name}>
+        <video controls ref={handleLoad} />
+      </div>
+    )
+  })
+
   return (
     <>
       <Head>
@@ -108,6 +145,7 @@ const Home: NextPage = () => {
       </Head>
 
       <div>
+        <h1>Reading local video files test</h1>
         <p>
           <em>Open console to see log and track behaviour. You will need to reload on first load to activate the service worker.</em>
         </p>
@@ -133,6 +171,15 @@ const Home: NextPage = () => {
             </button>
             {directoryHandleExpired === true && (
               <strong>Permissions expired, directory needs to be picked again</strong>
+            )}
+            {directoryHandleExpired === false && (
+              <>
+                <h2>Videos</h2>
+                {renderedVideos.length === 0 && (
+                  <p><em>No videos loaded yet</em></p>
+                )}
+                {renderedVideos}
+              </>
             )}
           </>
         )}
